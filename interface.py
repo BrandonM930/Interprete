@@ -3,6 +3,7 @@ from tkinter import ttk
 from tkinter import scrolledtext
 from googletrans import Translator
 import ply.yacc as yacc
+import pyttsx3
 from lexer import lexer
 
 class SimpleInterpreterGUI:
@@ -55,26 +56,34 @@ class SimpleInterpreterGUI:
         # Show the initial instruction
         self.show_result(self.translate_text("Enter your code to validate with the interpreter."))
 
+        # Inicializar el motor de texto a voz
+        self.engine = pyttsx3.init()
+
     def run_code(self):
         code = self.editor.get("1.0", tk.END)
         translated_code = self.translate_code(code)
         try:
             parser_result = parser.parse(translated_code, lexer=lexer)
-            result_str = f"Parser result: {parser_result}"
+            result_str = self.translate_text(f"Parser result: {parser_result}")
             self.show_result(result_str)
+            self.speak(result_str)
         except Exception as e:
-            error_str = f"Error during parsing/execution: {e}"
+            error_str = self.translate_text(f"Error during parsing/execution: {e}")
             self.show_result(error_str)
+            self.speak(error_str)
 
     def validate_code(self):
         code = self.editor.get("1.0", tk.END)
         translated_code = self.translate_code(code)
         try:
             parser.parse(translated_code, lexer=lexer)
-            self.show_result(self.translate_text("The code is valid."))
+            result_str = self.translate_text("The code is valid.")
+            self.show_result(result_str)
+            self.speak(result_str)
         except Exception as e:
-            error_str = f"Syntax error: {e}"
+            error_str = self.translate_text(f"Syntax error: {e}")
             self.show_result(error_str)
+            self.speak(error_str)
 
     def translate_code(self, code):
         target_language = self.language_var.get()
@@ -163,6 +172,10 @@ class SimpleInterpreterGUI:
     def change_language(self, event):
         new_language = next(key for key, value in self.languages.items() if value == self.language_selector.get())
         print("Language changed to:", new_language)
+        
+        # Cambia el idioma de la instrucción inicial
+        initial_instruction = self.translate_text("Enter your code to validate with the interpreter.")
+        self.show_result(initial_instruction)
 
         # Cambia el idioma de todos los elementos de la interfaz
         self.master.title(f"Simple Interpreter GUI - {self.languages[new_language]}")
@@ -177,6 +190,10 @@ class SimpleInterpreterGUI:
         target_language = self.language_var.get()
         translation = self.translator.translate(text, dest=target_language)
         return translation.text
+
+    def speak(self, text):
+        self.engine.say(text)
+        self.master.after(10, self.engine.runAndWait)
 
 def main():
     root = tk.Tk()
