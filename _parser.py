@@ -74,3 +74,8 @@ def p_error(p):
 
 # Crear el parser
 parser = yacc.yacc()
+
+# Ejemplo de uso
+data = "x = 10 + y * 5"
+result = parser.parse(data)
+print(result)
