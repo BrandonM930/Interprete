@@ -70,10 +70,14 @@ def p_expression_num_id(p):
 
 # Manejo de errores
 def p_error(p):
-    print(f"Syntax error at '{p.value}'")
+    print(f"Error de sintaxis en '{p.value}'")
 
-# Crear el parser
+# Crear el analizador
 parser = yacc.yacc()
+
+# Función para analizar datos
+def parse(data):
+    return parser.parse(data)
 
 # Ejemplo de uso
 data = "x = 10 + y * 5"
