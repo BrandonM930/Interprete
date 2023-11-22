@@ -18,6 +18,7 @@ tokens = (
     'FOR',
     'FUNCTION',
     'COMMA',
+    'SEMI',
 )
 
 # Definición de patrones de expresiones regulares
@@ -56,3 +57,14 @@ def t_error(t):
 
 # Crear el lexer
 lexer = lex.lex()
+
+# Ejemplo de uso
+data = "x = 10 + y * 5"
+lexer.input(data)
+
+# Imprimir los tokens generados
+while True:
+    tok = lexer.token()
+    if not tok:
+        break
+    print(tok)
