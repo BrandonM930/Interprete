@@ -2,9 +2,8 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import scrolledtext
 from googletrans import Translator
-import ply.yacc as yacc
+import _parser
 import pyttsx3
-from lexer import lexer
 
 class SimpleInterpreterGUI:
     def __init__(self, master):
@@ -33,9 +32,6 @@ class SimpleInterpreterGUI:
         self.editor = scrolledtext.ScrolledText(master, width=40, height=10)
         self.editor.pack(pady=5)
 
-        self.run_button = tk.Button(master, text=self.translate_text("Run"), command=self.run_code)
-        self.run_button.pack(side=tk.LEFT, padx=5)
-
         self.validate_button = tk.Button(master, text=self.translate_text("Validate"), command=self.validate_code)
         self.validate_button.pack(side=tk.RIGHT, padx=5)
 
@@ -48,14 +44,6 @@ class SimpleInterpreterGUI:
         self.result_text = tk.Text(master, height=2, width=40)
         self.result_text.pack(pady=5)
 
-        self.example_labels = []
-        self.example_buttons = []
-        self.examples_frame = tk.Frame(master)
-        self.examples_frame.pack(pady=5)
-
-        # Show the initial instruction
-        self.show_result(self.translate_text("Enter your code to validate with the interpreter."))
-
         # Inicializar el motor de texto a voz
         self.engine = pyttsx3.init()
 
@@ -63,7 +51,7 @@ class SimpleInterpreterGUI:
         code = self.editor.get("1.0", tk.END)
         translated_code = self.translate_code(code)
         try:
-            parser_result = parser.parse(translated_code, lexer=lexer)
+            parser_result = _parser.parse.parse(code)
             result_str = self.translate_text(f"Parser result: {parser_result}")
             self.show_result(result_str)
             self.speak(result_str)
@@ -76,7 +64,7 @@ class SimpleInterpreterGUI:
         code = self.editor.get("1.0", tk.END)
         translated_code = self.translate_code(code)
         try:
-            parser.parse(translated_code, lexer=lexer)
+            _parser.parser.parse(code)
             result_str = self.translate_text("The code is valid.")
             self.show_result(result_str)
             self.speak(result_str)
@@ -121,45 +109,40 @@ class SimpleInterpreterGUI:
 
     def show_examples(self):
         examples = [
-            "x = 10 + y * 5",
-            "result = 2 * (3 + 4)",
-            "a = 5 * (10 - b)",
-            "c = 8 / (2 * d)",
-            "x = 10 * y + z",
-            "invalid = 3 + * 5",
-            "",
-            "# Conditional Example",
-            "if x > 0:",
-            "    positive = True",
-            "else:",
-            "    positive = False",
-            "",
-            "# Loop Example",
-            "for i in range(5):",
-            "    print(i)",
-            "",
-            "# Function Example",
-            "def multiply(a, b):",
-            "    return a * b",
-            "",
-            "result = multiply(3, 4)",
+            "Example 1: x = 10 + y * 5",
+            "Example 2: result = 2 * (3 + 4)",
+            "Example 3: a = 5 * (10 - b)",
+            "Example 4: c = 8 / (2 * d)",
+            "Example 5: x = 10 * y + z",
+            "Example 6: invalid = 3 + * 5",
+            "Conditional Example:",
+            "    if x > 0:",
+            "        positive = True",
+            "    else:",
+            "        positive = False",
+            "Loop Example:",
+            "    for i in range(5):",
+            "        print(i)",
+            "Function Example:",
+            "    def multiply(a, b):",
+            "        return a * b",
+            "    result = multiply(3, 4)",
         ]
 
-        # Clear the frame of previous labels and buttons
-        for label, button in zip(self.example_labels, self.example_buttons):
-            label.destroy()
-            button.destroy()
-        self.example_labels = []
-        self.example_buttons = []
+        # Crear una nueva ventana para mostrar los ejemplos
+        examples_window = tk.Toplevel(self.master)
+        examples_window.title(self.translate_text("Examples"))
 
-        # Show examples in the frame and create buttons
-        for i, example in enumerate(examples):
-            label = tk.Label(self.examples_frame, text=f"Example {i + 1}: {example}")
-            label.grid(row=i, column=0, sticky=tk.W, padx=5)
-            self.example_labels.append(label)
-            button = tk.Button(self.examples_frame, text=f"Use Example {i + 1}", command=lambda ex=example: self.use_example(ex))
-            button.grid(row=i, column=1, padx=5)
-            self.example_buttons.append(button)
+        # Crear un ScrolledText en la nueva ventana
+        examples_text = scrolledtext.ScrolledText(examples_window, width=60, height=20, wrap=tk.WORD)
+        examples_text.pack(padx=10, pady=10)
+
+        # Mostrar ejemplos en el ScrolledText
+        for example in examples:
+            examples_text.insert(tk.END, example + "\n")
+
+        # Deshabilitar la edición en el ScrolledText
+        examples_text.configure(state=tk.DISABLED)
 
     def use_example(self, example):
         # Clear the editor before adding the example
@@ -174,14 +157,12 @@ class SimpleInterpreterGUI:
         print("Language changed to:", new_language)
         
         # Cambia el idioma de la instrucción inicial
-        initial_instruction = self.translate_text("Enter your code to validate with the interpreter.")
-        self.show_result(initial_instruction)
+        self.show_result(self.translate_text("Enter your code to validate with the interpreter."))
 
         # Cambia el idioma de todos los elementos de la interfaz
         self.master.title(f"Simple Interpreter GUI - {self.languages[new_language]}")
         self.language_label.config(text=self.translate_text("Select a language:"))
         self.editor_label.config(text=self.translate_text("Enter your code to validate with the interpreter:"))
-        self.run_button.config(text=self.translate_text("Run"))
         self.validate_button.config(text=self.translate_text("Validate"))
         self.help_button.config(text=self.translate_text("Help"))
         self.example_button.config(text=self.translate_text("Show Examples"))
