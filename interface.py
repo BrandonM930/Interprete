@@ -2,12 +2,8 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import scrolledtext
 from googletrans import Translator
-import threading
-import pyttsx3
 import ply.yacc as yacc
 from lexer import lexer
-
-# Resto de los imports...
 
 class SimpleInterpreterGUI:
     def __init__(self, master):
@@ -21,7 +17,7 @@ class SimpleInterpreterGUI:
         self.language_var = tk.StringVar()
         self.language_var.set("en")
 
-        self.language_label = ttk.Label(master, text="Select a language:")
+        self.language_label = ttk.Label(master, text=self.translate_text("Select a language:"))
         self.language_label.pack()
 
         self.language_selector = ttk.Combobox(master, values=list(self.languages.values()), state="readonly",
@@ -30,20 +26,23 @@ class SimpleInterpreterGUI:
         self.language_selector.pack()
         self.language_selector.bind("<<ComboboxSelected>>", self.change_language)
 
-        self.editor_label = tk.Label(master, text="Enter your code to validate with the interpreter:")
+        self.editor_label = tk.Label(master, text=self.translate_text("Enter your code to validate with the interpreter:"))
         self.editor_label.pack(pady=5)
 
         self.editor = scrolledtext.ScrolledText(master, width=40, height=10)
         self.editor.pack(pady=5)
 
-        self.run_button = tk.Button(master, text="Run", command=self.run_code)
+        self.run_button = tk.Button(master, text=self.translate_text("Run"), command=self.run_code)
         self.run_button.pack(side=tk.LEFT, padx=5)
 
-        self.validate_button = tk.Button(master, text="Validate", command=self.validate_code)
+        self.validate_button = tk.Button(master, text=self.translate_text("Validate"), command=self.validate_code)
         self.validate_button.pack(side=tk.RIGHT, padx=5)
 
-        self.help_button = tk.Button(master, text="Help", command=self.show_help)
+        self.help_button = tk.Button(master, text=self.translate_text("Help"), command=self.show_help)
         self.help_button.pack(side=tk.RIGHT, padx=5)
+
+        self.example_button = tk.Button(master, text=self.translate_text("Show Examples"), command=self.show_examples)
+        self.example_button.pack(side=tk.LEFT, padx=5)
 
         self.result_text = tk.Text(master, height=2, width=40)
         self.result_text.pack(pady=5)
@@ -54,13 +53,13 @@ class SimpleInterpreterGUI:
         self.examples_frame.pack(pady=5)
 
         # Show the initial instruction
-        self.show_result("Enter your code to validate with the interpreter.")
+        self.show_result(self.translate_text("Enter your code to validate with the interpreter."))
 
     def run_code(self):
         code = self.editor.get("1.0", tk.END)
         translated_code = self.translate_code(code)
         try:
-            parser_result = parser.parser.parse(translated_code, lexer=lexer)
+            parser_result = parser.parse(translated_code, lexer=lexer)
             result_str = f"Parser result: {parser_result}"
             self.show_result(result_str)
         except Exception as e:
@@ -71,8 +70,8 @@ class SimpleInterpreterGUI:
         code = self.editor.get("1.0", tk.END)
         translated_code = self.translate_code(code)
         try:
-            parser.parser.parse(translated_code, lexer=lexer)
-            self.show_result("The code is valid.")
+            parser.parse(translated_code, lexer=lexer)
+            self.show_result(self.translate_text("The code is valid."))
         except Exception as e:
             error_str = f"Syntax error: {e}"
             self.show_result(error_str)
@@ -89,13 +88,12 @@ class SimpleInterpreterGUI:
 
     def show_help(self):
         help_window = tk.Toplevel(self.master)
-        help_window.title("Help")
+        help_window.title(self.translate_text("Help"))
 
         help_text = """
         This is a simple interpreter GUI that allows you to enter and validate code snippets.
         
         Features:
-        - Select a language from the dropdown to translate the code.
         - Enter code in the editor and click "Run" or "Validate."
         - The result will be displayed in the result area.
         - Click "Help" to view examples and usage instructions.
@@ -109,7 +107,7 @@ class SimpleInterpreterGUI:
         Enjoy coding!
         """
 
-        help_label = tk.Label(help_window, text=help_text, justify=tk.LEFT)
+        help_label = tk.Label(help_window, text=self.translate_text(help_text), justify=tk.LEFT)
         help_label.pack(padx=10, pady=10)
 
     def show_examples(self):
@@ -163,9 +161,22 @@ class SimpleInterpreterGUI:
         self.show_result("")
 
     def change_language(self, event):
-        # Function to change the language when a new one is selected
-        self.current_language = next(key for key, value in self.languages.items() if value == self.language_selector.get())
-        print("Language changed to:", self.current_language)
+        new_language = next(key for key, value in self.languages.items() if value == self.language_selector.get())
+        print("Language changed to:", new_language)
+
+        # Cambia el idioma de todos los elementos de la interfaz
+        self.master.title(f"Simple Interpreter GUI - {self.languages[new_language]}")
+        self.language_label.config(text=self.translate_text("Select a language:"))
+        self.editor_label.config(text=self.translate_text("Enter your code to validate with the interpreter:"))
+        self.run_button.config(text=self.translate_text("Run"))
+        self.validate_button.config(text=self.translate_text("Validate"))
+        self.help_button.config(text=self.translate_text("Help"))
+        self.example_button.config(text=self.translate_text("Show Examples"))
+
+    def translate_text(self, text):
+        target_language = self.language_var.get()
+        translation = self.translator.translate(text, dest=target_language)
+        return translation.text
 
 def main():
     root = tk.Tk()
