@@ -6,7 +6,7 @@ import _parser
 import pyttsx3
 
 class SimpleInterpreterGUI:
-    def __init__(self, master):
+    def _init_(self, master):
         self.master = master
         master.title("Simple Interpreter GUI")
 
@@ -31,6 +31,9 @@ class SimpleInterpreterGUI:
 
         self.editor = scrolledtext.ScrolledText(master, width=40, height=10)
         self.editor.pack(pady=5)
+        
+        self.run_button = tk.Button(master, text=self.translate_text("Run"), command=self.run_code)
+        self.run_button.pack(side=tk.LEFT, padx=5)
 
         self.validate_button = tk.Button(master, text=self.translate_text("Validate"), command=self.validate_code)
         self.validate_button.pack(side=tk.RIGHT, padx=5)
@@ -51,12 +54,12 @@ class SimpleInterpreterGUI:
         code = self.editor.get("1.0", tk.END)
         translated_code = self.translate_code(code)
         try:
-            parser_result = _parser.parse.parse(code)
-            result_str = self.translate_text(f"Parser result: {parser_result}")
-            self.show_result(result_str)
-            self.speak(result_str)
+            resultado_analisis = _parser.parse(code)
+            resultado_str = self.translate_text(f"Resultado del análisis: {resultado_analisis}")
+            self.show_result(resultado_str)
+            self.speak(resultado_str)
         except Exception as e:
-            error_str = self.translate_text(f"Error during parsing/execution: {e}")
+            error_str = self.translate_text(f"Error durante el análisis/ejecución: {e}")
             self.show_result(error_str)
             self.speak(error_str)
 
@@ -181,5 +184,5 @@ def main():
     app = SimpleInterpreterGUI(root)
     root.mainloop()
 
-if __name__ == "__main__":
+if __name__ == "_main_":
     main()
